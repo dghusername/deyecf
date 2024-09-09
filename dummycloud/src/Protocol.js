@@ -60,6 +60,10 @@ class Protocol {
             Logger.debug(`Received packet of type "${typeStr}"`);
         } else {
             Logger.warn(`Received packet of unknown type "0x${header.type.toString(16)}"`);
+Logger.debug( `xHeader received: `, header );
+Logger.debug( `xData bin: ${buf.toString()}` );
+Logger.debug( "xData hex:", buf.toString("hex") );
+Logger.debug( "xData tab:", buf.toString("hex").match(/.{1,2}/g) );
         }
 
         return {
@@ -83,6 +87,7 @@ class Protocol {
         if (!!(packet.payload[0] & 0b10000000)) {
             // Seems to be one of these weird historic data packets from the SUN-M series. Ignoring for now
             // TODO: understand what they mean and how they should be handled
+Logger.debug( `xDiscard Bit set...` );
             return null;
         }
 
@@ -178,6 +183,13 @@ class Protocol {
         };
     }
 
+  static parseWifiPacketPayload( packet ) {
+    return {
+      bits: packet.payload.readInt8( 13 ),
+      signal: packet.payload.readInt8( 45 )
+    };
+  }
+
     static buildTimeResponse(packet) {
         const response = Buffer.alloc(23);
 
@@ -224,6 +236,7 @@ Protocol.MESSAGE_REQUEST_TYPES = {
     HANDSHAKE: 0x41,
     DATA: 0x42,
     // wifi info is 0x43?
+  WIFI: 0x43,
     HEARTBEAT: 0x47,
 };
 

@@ -34,7 +34,9 @@ class Logger {
      * @return {string}
      */
     buildLogLinePrefix(logLevel) {
-        return `[${new Date().toISOString()}] [${logLevel}]`;
+//        return `[${new Date().toISOString()}] [${logLevel}]`;
+const d = new Date();
+return `${d.toLocaleDateString("de-DE", {day: 'numeric', month: 'numeric' })} ${d.toLocaleTimeString("de-DE", {hour: 'numeric', minute: 'numeric', second: 'numeric' })} [${logLevel}]`;
     }
 
     /**
