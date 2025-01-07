@@ -60,10 +60,6 @@ class Protocol {
             Logger.debug(`Received packet of type "${typeStr}"`);
         } else {
             Logger.warn(`Received packet of unknown type "0x${header.type.toString(16)}"`);
-Logger.debug( `xHeader received: `, header );
-Logger.debug( `xData bin: ${buf.toString()}` );
-Logger.debug( "xData hex:", buf.toString("hex") );
-Logger.debug( "xData tab:", buf.toString("hex").match(/.{1,2}/g) );
         }
 
         return {
@@ -87,7 +83,7 @@ Logger.debug( "xData tab:", buf.toString("hex").match(/.{1,2}/g) );
         if (!!(packet.payload[0] & 0b10000000)) {
             // Seems to be one of these weird historic data packets from the SUN-M series. Ignoring for now
             // TODO: understand what they mean and how they should be handled
-Logger.debug( `xDiscard Bit set...` );
+Logger.info( `Discard Bit set...` );
             return null;
         }
 
@@ -150,6 +146,7 @@ Logger.debug( `xDiscard Bit set...` );
             inverter_meta: {
                 rated_power_w: packet.payload.readUInt16BE(129) / 10,
                 mppt_count: packet.payload.readInt8(131),
+                phase_count: packet.payload.readInt8(132),
 
                 startup_self_check_time: packet.payload.readUInt16BE(243),
                 current_time: Protocol.parseTime(packet.payload.subarray(245, 251)),
@@ -185,8 +182,9 @@ Logger.debug( `xDiscard Bit set...` );
 
   static parseWifiPacketPayload( packet ) {
     return {
-      bits: packet.payload.readInt8( 13 ),
-      signal: packet.payload.readInt8( 45 )
+      type: packet.payload.readUInt8( 0 ),
+      bits: packet.payload.readUInt8( 13 ),
+      signal: packet.payload.readUInt8( 45 )
     };
   }
 
@@ -235,8 +233,7 @@ Logger.debug( `xDiscard Bit set...` );
 Protocol.MESSAGE_REQUEST_TYPES = {
     HANDSHAKE: 0x41,
     DATA: 0x42,
-    // wifi info is 0x43?
-  WIFI: 0x43,
+    WIFI: 0x43,
     HEARTBEAT: 0x47,
 };
 

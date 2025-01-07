@@ -65,13 +65,14 @@ class MqttClient {
     }
 
     handleData(data) {
-        this.ensureAutoconf(data.header.loggerSerial.toString(), data.payload.inverter_meta.mppt_count);
+//      this.ensureAutoconf(data.header.loggerSerial.toString(), data.payload.inverter_meta.mppt_count);
         const baseTopic = `${MqttClient.TOPIC_PREFIX}/${data.header.loggerSerial.toString()}`;
+const d = new Date();
 
         for (let i = 1; i <= data.payload.inverter_meta.mppt_count; i++) {
-            this.client.publish(`${baseTopic}/pv/${i}/v`, data.payload.pv[`${i}`].v.toString());
-            this.client.publish(`${baseTopic}/pv/${i}/i`, data.payload.pv[`${i}`].i.toString());
-            this.client.publish(`${baseTopic}/pv/${i}/w`, data.payload.pv[`${i}`].w.toString());
+            this.client.publish(`${baseTopic}/pv/${i}/v`, data.payload.pv[`${i}`].v.toString(), { retain: true } );
+            this.client.publish(`${baseTopic}/pv/${i}/i`, data.payload.pv[`${i}`].i.toString(), { retain: true } );
+            this.client.publish(`${baseTopic}/pv/${i}/w`, data.payload.pv[`${i}`].w.toString(), { retain: true } );
             this.client.publish(
                 `${baseTopic}/pv/${i}/kWh_today`,
                 data.payload.pv[`${i}`].kWh_today.toString(),
@@ -87,7 +88,7 @@ class MqttClient {
             }
         }
 
-        this.client.publish(`${baseTopic}/grid/active_power_w`, data.payload.grid.active_power_w.toString());
+        this.client.publish(`${baseTopic}/grid/active_power_w`, data.payload.grid.active_power_w.toString(), { retain: true } );
 
         this.client.publish(
             `${baseTopic}/grid/kWh_today`,
@@ -101,10 +102,18 @@ class MqttClient {
                 {retain: true}
             );
         }
-        this.client.publish(`${baseTopic}/grid/v`, data.payload.grid.v.toString());
-        this.client.publish(`${baseTopic}/grid/hz`, data.payload.grid.hz.toString());
+        this.client.publish(`${baseTopic}/grid/v`, data.payload.grid.v.toString(), { retain: true } );
+        this.client.publish(`${baseTopic}/grid/hz`, data.payload.grid.hz.toString(), { retain: true } );
 
-        this.client.publish(`${baseTopic}/inverter/radiator_temperature`, data.payload.inverter.radiator_temp_celsius.toString());
+        this.client.publish(`${baseTopic}/inverter/radiator_temperature`, data.payload.inverter.radiator_temp_celsius.toString(), { retain: true } );
+
+this.client.publish( `${baseTopic}/grid/i`,	data.payload.grid.i.toString(), { retain: true } );
+this.client.publish( `${baseTopic}/inverter/w`,	(data.payload.pv[1].w + data.payload.pv[2].w).toFixed(2).toString(), { retain: true } );
+
+this.client.publish( `${baseTopic}/meta/ts`,	`${d.toLocaleDateString( "de-DE", { weekday: "short" })}, ${d.toLocaleTimeString("de-DE", { hour: "numeric", minute: "numeric", second: "numeric" })}`, { retain: true } );
+
+this.client.publish(`${baseTopic}/meta/time`, ( d.getTime() / 1000 ).toFixed(0).toString(), { retain: true });
+
     }
 
     ensureAutoconf(loggerSerial, mpptCount) {
